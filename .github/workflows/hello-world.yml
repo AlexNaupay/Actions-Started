@@ -3,10 +3,16 @@ on: [push]
 jobs:
   execute:
     runs-on: ubuntu-latest
+    env: # A map of variables that are available to the steps of all jobs in the workflow.
+      MY_NAME: Alex
+      NULL_VALUE: ${{ null }} # Null value
+      NUMBER_VALUE: ${{ 15 }} # Number value
     steps:
       - name: Get source code
         uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Set system environment variables
+        run: echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV ; echo "NAME=@alexh" >> $GITHUB_ENV
       - run: node index.js
