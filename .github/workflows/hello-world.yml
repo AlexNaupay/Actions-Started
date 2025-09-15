@@ -16,3 +16,8 @@ jobs:
       - name: Set system environment variables
         run: echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV ; echo "NAME=@alexh" >> $GITHUB_ENV
       - run: node index.js
+      - name: Show repo variables
+        env:
+          TIME_Z: ${{ vars.TZ }}
+          SECRET: ${{ secrets.MY_SECRET }}
+        run : echo "Timezone=$TZ" ; echo "TimeZone=${{vars.TZ}}"; echo "TimeZone=${{env.TZ}}"
