@@ -8,7 +8,7 @@ jobs:
       NULL_VALUE: ${{ null }} # Null value
       NUMBER_VALUE: ${{ 15 }} # Number value
       TIME_Z: ${{ vars.TZ }}
-      SECRET: ${{ secrets.MY_SECRET }}
+      MY_SECRET: ${{ secrets.MY_SECRET }}
     steps:
       - name: Get source code
         uses: actions/checkout@v5
