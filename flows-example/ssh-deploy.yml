@@ -1,0 +1,48 @@
+name: CI + Deploy to Server
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      # - name: Buscar secretos en el repo
+      #   uses: gitleaks/gitleaks-action@v2
+      - name: Seguridad Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: 'p/default'
+      - name: Buscar secretos con TruffleHog (v3 via Docker)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/pwd trufflesecurity/trufflehog:latest \
+            filesystem --only-verified /pwd
+      - name: 🚀 Hacer deploy al servidor por SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "✅ Conexión SSH exitosa desde GitHub Actions"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install && nvm use
+            cd /var/www/html/Torrente
+            git pull origin main
+            yarn install
+            pm2 restart torrente-contact || pm2 start server.js --name torrente-contact
+            pm2 save
+            pm2 resurrect
